@@ -4,7 +4,7 @@
 import os
 
 from flask import Flask, render_template, redirect, url_for, request
-from pycoyote import DIV, Component
+from pycoyote import DIV, SPAN, Component
 
 app = Flask(__name__, static_folder='static')
 
@@ -12,7 +12,10 @@ app = Flask(__name__, static_folder='static')
 def home_page():
     return render_template(
         'index.html', 
-        content = MainPage()
+        content = MainPage(
+            {"color": "green"},
+            DIV("Example ends here")
+        )
     )
 
 def main():
@@ -20,8 +23,11 @@ def main():
 
 class MainPage(Component):
     def render(self):
-        return DIV({"class": "bold"},
-            "Hello world!"
+        return DIV(
+            SPAN({"class": "bold", "style": f"background-color: {self.props['color']};"},
+                "Hello world!"
+            ),
+            *self.children
         )
 
 if __name__ == '__main__':
