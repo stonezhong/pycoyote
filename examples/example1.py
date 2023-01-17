@@ -4,7 +4,7 @@
 import os
 
 from flask import Flask, render_template, redirect, url_for, request
-from coyote import DIV, Component
+from pycoyote import DIV, Component
 
 app = Flask(__name__, static_folder='static')
 
@@ -20,8 +20,8 @@ def main():
 
 class MainPage(Component):
     def render(self):
-        return DIV(
-            "hello world!"
+        return DIV({"class": "bold"},
+            "Hello world!"
         )
 
 if __name__ == '__main__':
