@@ -8,7 +8,7 @@
 # You can access self.props which contains all the attributes passed to your component
 # You can import HTML tags from Component, for example "from pycoyote import DIV"
 
-from pycoyote import Component, DIV
+from pycoyote import Component, DIV, SPAN
 class MainPage(Component):
     def render(self):
         return DIV(
