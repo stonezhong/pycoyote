@@ -1,4 +1,5 @@
-src/pycoyote.egg-info/
-examples/.venv/
-build/
-dist/
+/src/pycoyote.egg-info/
+/examples/.venv/
+/build/
+/dist/
+__pycache__/
