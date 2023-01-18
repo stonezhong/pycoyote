@@ -24,7 +24,7 @@ class MainPage(Component):
 # You can pass attributes to your component
 # You can pass children to your component
 MainPage({"color": "green"}, 
-    SPAN("Example ends here.)    # you can pass as much child as you need
+    SPAN("Example ends here.")    # you can pass as much child as you need
 )
 ```
 
