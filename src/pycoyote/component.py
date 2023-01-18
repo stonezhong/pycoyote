@@ -50,11 +50,9 @@ class PrimitiveComponent(Component):
 
     def _get_actual_prop_value(self, prop_name, prop_value):
         if prop_name in ("class", "classname"):
-            try:
-                it = iter(prop_value)
-                return (True, "class", " ".join([str(i) for i in it]))
-            except TypeError:
-                return (True, "class", str(prop_name))
+            if isinstance(prop_value, tuple) or isinstance(prop_value, list):
+                return (True, "class", " ".join([str(i) for i in prop_value]))
+            return (True, "class", str(prop_value))
         if prop_name == "style":
             print(type(prop_value))
             if isinstance(prop_value, dict):
