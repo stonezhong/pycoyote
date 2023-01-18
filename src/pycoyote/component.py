@@ -48,10 +48,33 @@ class PrimitiveComponent(Component):
     def render(self):
         raise NotImplementedError()
 
+    def _get_actual_prop_value(self, prop_name, prop_value):
+        if prop_name in ("class", "classname"):
+            try:
+                it = iter(prop_value)
+                return (True, "class", " ".join([str(i) for i in it]))
+            except TypeError:
+                return (True, "class", str(prop_name))
+        if prop_name == "style":
+            print(type(prop_value))
+            if isinstance(prop_value, dict):
+                r = []
+                for k, v in prop_value.items():
+                    str_v = f"{html.escape(str(v))}"
+                    r.append(f"{k}:{str_v}")
+                return (False, "style", ';'.join(r))
+            else:
+                return (False, "style", html.escape(str(prop_value)))
+        return (True, prop_name, prop_value)
+
     def get_physical_dom(self):
         out = f"<{self._cyo_tag}"
         for prop_name, prop_value in self.props.items():
-            v = f"{prop_name}=\"{html.escape(prop_value)}\""
+            escape, actual_prop_name, actual_prop_value = self._get_actual_prop_value(prop_name, prop_value)
+            if escape:
+                v = f"{actual_prop_name}=\"{html.escape(actual_prop_value)}\""
+            else:
+                v = f"{actual_prop_name}=\"{actual_prop_value}\""
             out += f" {v}"
         if len(self.children) == 0:
             return f"{out} />"
