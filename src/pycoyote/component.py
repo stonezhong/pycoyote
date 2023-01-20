@@ -54,7 +54,6 @@ class PrimitiveComponent(Component):
                 return (True, "class", " ".join([str(i) for i in prop_value]))
             return (True, "class", str(prop_value))
         if prop_name == "style":
-            print(type(prop_value))
             if isinstance(prop_value, dict):
                 r = []
                 for k, v in prop_value.items():
