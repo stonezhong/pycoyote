@@ -1,32 +1,64 @@
 from copy import copy
 import html
+from abc import ABC, abstractmethod
+from typing import Any, Tuple, List
 
-def _is_primitive(element):
-    # is an element a primitive element?
-    return isinstance(element, Component) and element._cyo_is_primitive
 
-def _is_non_primitive(element):
-    # is an element a non-primitive element?
-    return isinstance(element, Component) and not element._cyo_is_primitive
+def _is_primitive(element) -> bool:
+    """ Return True if element is an instance of primitive component
+    """
+    return isinstance(element, Component) and element.cyo_is_primitive
 
-def _is_raw(element):
+
+def _is_non_primitive(element) -> bool:
+    """ Return True if element is an instance of non-primitive component
+    """
+    return isinstance(element, Component) and not element.cyo_is_primitive
+
+
+def _is_raw(element) -> bool:
+    """ Return true if element is not a compoent, aka raw
+    """
     return not isinstance(element, Component)
 
-class Component:
-    _cyo_is_primitive:bool=False         # is this component primitive?
+
+def _get_actual_prop_value(prop_name:str, prop_value:Any) -> Tuple[bool, str, Any]:
+    """Convert prop name and value for some known props, for primitive component
+    """
+    if prop_name == "class":
+        if isinstance(prop_value, tuple) or isinstance(prop_value, list):
+            return True, prop_name, " ".join([str(i) for i in prop_value])
+        return True, prop_name, str(prop_value)
+    if prop_name == "style":
+        if isinstance(prop_value, dict):
+            r = []
+            for k, v in prop_value.items():
+                str_v = f"{html.escape(str(v))}"
+                r.append(f"{k}:{str_v}")
+            return False, prop_name, ';'.join(r)
+        else:
+            return False, prop_name, html.escape(str(prop_value))
+    return True, prop_name, str(prop_value)
+
+
+class Component(ABC):
+    """Represent a UI component
+    """
+    __cyo_is_primitive: bool = False  # is this component primitive?
 
     def __init__(self, *children):
         if len(children) == 0:
             self.children = []
             self.props = {}
         else:
-            if (isinstance(children[0], dict)):
+            if isinstance(children[0], dict):
                 self.props = copy(children[0])
                 self.children = children[1:]
             else:
                 self.children = copy(children)
                 self.props = {}
 
+    @abstractmethod
     def render(self):
         raise NotImplementedError("Component must overwrite render method!")
 
@@ -35,39 +67,27 @@ class Component:
             vdom.get_physical_dom() for vdom in get_virtual_dom([self])
         ])
 
+    @property
+    def cyo_is_primitive(self):
+        return self.__cyo_is_primitive
+
 
 class PrimitiveComponent(Component):
     def __init__(self, tag, *children):
         super().__init__(*children)
-        self._cyo_is_primitive=True
-        self._cyo_tag = tag
-    
-    def clone(self):
-        return PrimitiveComponent(self._cyo_tag, *[self.props, *self.children])
+        self._Component__cyo_is_primitive = True
+        self.__cyo_tag = tag
+
+    def clone(self) -> "PrimitiveComponent":
+        return self.__class__(*[self.props, *self.children])
 
     def render(self):
-        raise NotImplementedError()
+        pass
 
-    def _get_actual_prop_value(self, prop_name, prop_value):
-        if prop_name in ("class", "classname"):
-            if isinstance(prop_value, tuple) or isinstance(prop_value, list):
-                return (True, "class", " ".join([str(i) for i in prop_value]))
-            return (True, "class", str(prop_value))
-        if prop_name == "style":
-            if isinstance(prop_value, dict):
-                r = []
-                for k, v in prop_value.items():
-                    str_v = f"{html.escape(str(v))}"
-                    r.append(f"{k}:{str_v}")
-                return (False, "style", ';'.join(r))
-            else:
-                return (False, "style", html.escape(str(prop_value)))
-        return (True, prop_name, prop_value)
-
-    def get_physical_dom(self):
-        out = f"<{self._cyo_tag}"
+    def get_physical_dom(self) -> str:
+        out = f"<{self.__cyo_tag}"
         for prop_name, prop_value in self.props.items():
-            escape, actual_prop_name, actual_prop_value = self._get_actual_prop_value(prop_name, prop_value)
+            escape, actual_prop_name, actual_prop_value = _get_actual_prop_value(prop_name, prop_value)
             if escape:
                 v = f"{actual_prop_name}=\"{html.escape(actual_prop_value)}\""
             else:
@@ -86,11 +106,11 @@ class PrimitiveComponent(Component):
                 pass
             else:
                 out += html.escape(str(child))
-        out += f"</{self._cyo_tag}>"
+        out += f"</{self.__cyo_tag}>"
         return out
-    
 
-def get_virtual_dom(elements):
+
+def get_virtual_dom(elements: List[Any]) -> List[Any]:
     out_elements = list(elements)
     while True:
         rendered = False
@@ -103,7 +123,7 @@ def get_virtual_dom(elements):
                 out_elements.append(current_element)
             else:
                 transformed = current_element.render()
-                if isinstance(transformed, list):
+                if isinstance(transformed, list) or isinstance(transformed, tuple):
                     out_elements.extend(transformed)
                 else:
                     out_elements.append(transformed)
