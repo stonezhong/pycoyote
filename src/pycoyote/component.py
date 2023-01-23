@@ -3,6 +3,11 @@ import html
 from abc import ABC, abstractmethod
 from typing import Any, Tuple, List
 
+# see http://xahlee.info/js/html5_non-closing_tag.html
+SELF_CLOSING_TAGS = set([
+    "AREA", "BASE", "BR", "COL", "EMBED", "HR", "IMG", "INPUT", "LINK", "META", "PARAM", "SOURCE", "TRACK", "WBR",
+    "KEYGEN", "MENUITEM"
+])
 
 def _is_primitive(element) -> bool:
     """ Return True if element is an instance of primitive component
@@ -44,9 +49,8 @@ def _get_actual_prop_value(prop_name:str, prop_value:Any) -> Tuple[bool, str, An
 class Component(ABC):
     """Represent a UI component
     """
-    __cyo_is_primitive: bool = False  # is this component primitive?
-
     def __init__(self, *children):
+        self.__cyo_is_primitive = False
         if len(children) == 0:
             self.children = []
             self.props = {}
@@ -93,7 +97,7 @@ class PrimitiveComponent(Component):
             else:
                 v = f"{actual_prop_name}=\"{actual_prop_value}\""
             out += f" {v}"
-        if len(self.children) == 0:
+        if len(self.children) == 0 and self.__cyo_tag.upper() in SELF_CLOSING_TAGS:
             return f"{out} />"
         out += ">"
         for child in self.children:

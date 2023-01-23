@@ -11,7 +11,7 @@ with open(os.path.join(HERE, "README.md"), "r") as f:
 # This call to setup() does all the work
 setup(
     name="pycoyote",
-    version="0.0.7",
+    version="0.0.8",
     description="A Python library for building Web user interfaces",
     long_description=README,
     long_description_content_type="text/markdown",
